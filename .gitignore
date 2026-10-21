@@ -1,0 +1,54 @@
+# ── Build directories ─────────────────────────────────────────────────────────
+build/
+build_host/
+build_genode/
+build_*/
+
+# ── CMake generated files ─────────────────────────────────────────────────────
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# ── Qt / MOC generated files ──────────────────────────────────────────────────
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+*.qm
+
+# ── Compiled object files ─────────────────────────────────────────────────────
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+
+# ── Binaries ──────────────────────────────────────────────────────────────────
+calcirok
+calcirok.exe
+
+# ── Genode build artifacts ────────────────────────────────────────────────────
+*.run.log
+var/
+*.iso
+*.img
+*.elf
+
+# ── Editor / IDE ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ── Packaging ─────────────────────────────────────────────────────────────────
+*.tar.gz
+*.zip

@@ -1,0 +1,117 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# calcirok.run — Genode run script (NOVA kernel target)
+#
+# Usage from within a Genode build directory:
+#   make run/calcirok KERNEL=nova
+#
+# This script describes the system image: which binaries to bundle,
+# how to configure them, and what the boot sequence looks like.
+# ──────────────────────────────────────────────────────────────────────────────
+
+build {
+    core
+    timer
+    drivers/input
+    drivers/framebuffer
+    server/nitpicker
+    server/qt5_fs
+    app/calcirok
+}
+
+create_boot_directory
+
+# ── System config ─────────────────────────────────────────────────────────────
+install_config {
+<config>
+  <parent-provides>
+    <service name="ROM"/>
+    <service name="RAM"/>
+    <service name="IRQ"/>
+    <service name="IO_MEM"/>
+    <service name="IO_PORT"/>
+    <service name="PD"/>
+    <service name="CPU"/>
+    <service name="LOG"/>
+    <service name="Timer"/>
+  </parent-provides>
+
+  <default-route>
+    <any-service> <parent/> <any-child/> </any-service>
+  </default-route>
+
+  <!-- Framebuffer driver -->
+  <start name="fb_drv" caps="200">
+    <resource name="RAM" quantum="4M"/>
+    <provides><service name="Framebuffer"/></provides>
+    <config width="1024" height="768"/>
+  </start>
+
+  <!-- Input driver -->
+  <start name="input_drv" caps="100">
+    <resource name="RAM" quantum="1M"/>
+    <provides>
+      <service name="Input"/>
+    </provides>
+  </start>
+
+  <!-- Nitpicker GUI server -->
+  <start name="nitpicker" caps="200">
+    <resource name="RAM" quantum="8M"/>
+    <provides>
+      <service name="Gui"/>
+      <service name="Capture"/>
+      <service name="Event"/>
+    </provides>
+    <config>
+      <report focus="yes"/>
+      <domain name="default" layer="2" content="client" label="no" hover="always"/>
+      <default-policy domain="default"/>
+    </config>
+  </start>
+
+  <!-- calcirok Qt application -->
+  <start name="calcirok" caps="500">
+    <resource name="RAM" quantum="64M"/>
+    <config>
+      <vfs>
+        <dir name="dev"> <log/> </dir>
+        <dir name="pipe"> <pipe/> </dir>
+        <tar name="qt5.tar"/>
+      </vfs>
+      <libc stdout="/dev/log" stderr="/dev/log" pipe="/pipe"/>
+    </config>
+    <route>
+      <service name="Gui"> <child name="nitpicker"/> </service>
+      <any-service> <parent/> <any-child/> </any-service>
+    </route>
+  </start>
+
+</config>
+}
+
+# ── ROM modules bundled into the image ───────────────────────────────────────
+set boot_modules {
+    core
+    ld.lib.so
+    init
+    timer
+    fb_drv
+    input_drv
+    nitpicker
+    libc.lib.so
+    libm.lib.so
+    posix.lib.so
+    stdcxx.lib.so
+    qt5_core.lib.so
+    qt5_gui.lib.so
+    qt5_widgets.lib.so
+    qt5_nitpicker.lib.so
+    qt5.tar
+    calcirok
+}
+
+build_boot_image $boot_modules
+
+# ── Run in QEMU (NOVA) ────────────────────────────────────────────────────────
+append qemu_args " -m 256 -nographic"
+run_genode_until forever
