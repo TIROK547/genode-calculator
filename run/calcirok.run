@@ -11,10 +11,9 @@
 build {
     core
     timer
-    drivers/input
-    drivers/framebuffer
+    driver/ps2/x86
+    driver/framebuffer/vesa
     server/nitpicker
-    server/qt5_fs
     app/calcirok
 }
 

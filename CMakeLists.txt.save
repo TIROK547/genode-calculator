@@ -1,0 +1,67 @@
+cmake_minimum_required(VERSION 3.20)
+project(calcirok VERSION 1.0.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+# ──────────────────────────────────────────────
+# Genode toolchain detection
+# When cross-compiling for Genode, set:
+#   -DGENODE_DIR=<path-to-genode>
+#   -DCMAKE_TOOLCHAIN_FILE=cmake/genode_toolchain.cmake
+# ──────────────────────────────────────────────
+option(GENODE_BUILD "Build for Genode/NOVA target" OFF)
+
+if(GENODE_BUILD)
+    message(STATUS "[calcirok] Genode build mode ON")
+    include(cmake/genode_toolchain.cmake)
+    find_package(Qt5 REQUIRED COMPONENTS Core Widgets
+        PATHS ${GENODE_DIR}/contrib/qt5
+        NO_DEFAULT_PATH)
+else()
+    message(STATUS "[calcirok] Host build mode (dev/test)")
+    find_package(Qt5 REQUIRED COMPONENTS Core Widgets)
+endif()
+
+# ──────────────────────────────────────────────
+# Sources
+# ──────────────────────────────────────────────
+ضset(SOURCES
+    src/main.cpp
+    src/calculator.cpp
+    src/calculator_engine.cpp
+    src/main_window.cpp
+)
+
+set(HEADERS
+    src/calculator.h
+    src/calculator_engine.h
+    src/main_window.h
+)
+
+add_executable(calcirok ${SOURCES} ${HEADERS})
+
+target_include_directories(calcirok PRIVATE src)
+
+target_link_libraries(calcirok
+    PRIVATE
+        Qt5::Core
+        Qt5::Widgets
+)
+
+# Genode-specific link flags
+if(GENODE_BUILD)
+    target_link_options(calcirok PRIVATE
+        -nostdlib
+        -Wl,--gc-sections
+    )
+    target_compile_definitions(calcirok PRIVATE GENODE_BUILD)
+endif()
+
+# ──────────────────────────────────────────────
+# Install
+# ──────────────────────────────────────────────
+install(TARGETS calcirok RUNTIME DESTINATION bin)
